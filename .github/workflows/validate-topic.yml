@@ -1,0 +1,30 @@
+name: Validate isolated upstream topic
+on:
+  push:
+    branches: [validation/text-cookie-import]
+permissions:
+  contents: read
+concurrency:
+  group: upstream-text-cookie-import-validation
+  cancel-in-progress: false
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      VITE_WEBSITE: https://cookieeditor.org
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 2fe602edb41701f75b4f7cea805e9c8ec376a9db
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Test complete upstream-native Vitest suite
+        run: npm test
+      - name: Compile without installing the extension
+        run: npm run build
